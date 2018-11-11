@@ -511,12 +511,26 @@ extern "C" {
     /*                                                                           */
     /*---------------------------------------------------------------------------*/
     
-    void usbFunctionWriteOut(uchar * data, uchar len)
+   void usbFunctionWriteOut(uchar * data, uchar len) 
+
     {
-        //TODO: Use midi callback for arduino to allow for listining.
-        // DEBUG LED
-        //PORTC ^= 0x20;
-    }
+
+	uint8_t note=data[2]; //Get note for key on/off
+	if (note<36) note=36; //If note is lower than C2 set it to C2
+	note=note-36; //Subtract 36 to get into CV range
+	if (note>60) note=60; //If note is higher than C7 set it to C7
+	if (data[1] == 0x90) { //If note on
+	digitalWrite(5, HIGH); //Set Gate HIGH
+	OCR1A = note<<2; //Multiply note by 4 to set the voltage (1v/octave)
+   }
+	if (data[1] == 0x80) { //If note off
+	digitalWrite(5, LOW); //Set Gate LOW
+	OCR1A = note<<2; //Multiply note by 4 to set the voltage (1v/octave)
+   }
+
+   }
+
+
 
 #ifdef __cplusplus
 } // extern "C"
